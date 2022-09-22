@@ -3,7 +3,7 @@ export async function onRequest(ctx) {
         return new Response("Method not allowed.", {status: 405});
     }
 
-    const content = await ctx.env.STORAGE.get(`documents:${ctx.params.key}`);
+    const content = await ctx.env.STORAGE.get(`documents:${ctx.params.key}`, {cacheTtl: ctx.env.CACHE_TTL});
 
     if (!content) {
         return new Response(`Document "${ctx.params.key}" not found.`, {status: 404});

@@ -21,6 +21,7 @@ map a KV Namespace called `STORAGE`.
 
 Required environment variables:
 
+- `CACHE_TTL`
 - `DOCUMENT_KEY_SIZE`
 - `MAX_DOCUMENT_SIZE`
 - `SECRET_KEY`
