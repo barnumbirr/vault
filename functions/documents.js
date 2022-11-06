@@ -1,5 +1,6 @@
 export async function onRequest(ctx) {
   	const secret = ctx.request.headers.get('Authorization');
+  	const ttl = ctx.request.headers.get('Expiration');
 
   	if (secret !== ctx.env.SECRET_KEY) {
 	  	return new Response("Unauthorized.", {status: 401});
@@ -26,9 +27,14 @@ export async function onRequest(ctx) {
   	if (await ctx.env.STORAGE.get(`documents:${id}`) !== null) {
 		const id = generateId(ctx);
   	}
-  	const content = await ctx.request.text();
 
-  	await ctx.env.STORAGE.put(`documents:${id}`, content);
+  	const content = await ctx.request.text();
+  	let options = {};
+	if (ttl >= 60) {
+		options = { expirationTtl: ttl }
+	}
+
+  	await ctx.env.STORAGE.put(`documents:${id}`, content, options);
 
   	const json = {
 		key: id,
