@@ -1,11 +1,13 @@
 # `vault`
 
-A tiny, serverless pastebin-like service built on Cloudflare Pages Functions and Workers KV.  
+A tiny, serverless pastebin-like service built on Cloudflare Pages Functions
+and Workers KV.  
 
 Heavily inspired by [`LostLuma/starbin`](https://github.com/LostLuma/starbin)
 and [`Erisa/starbin-pages`](https://github.com/Erisa/starbin-pages).
 
-All static assets are copied from the original [`haste-server`](https://github.com/toptal/haste-server).
+All static assets are copied from the original
+[`haste-server`](https://github.com/toptal/haste-server).
 
 ## Changes
 
@@ -16,8 +18,8 @@ All static assets are copied from the original [`haste-server`](https://github.c
 
 ## Deploy
 
-Fork repository, create a `Pages` project and connect it to your forked repo, then
-map a KV Namespace called `STORAGE`.
+Fork repository, create a `Pages` project and connect it to your forked repo,
+then map a KV Namespace called `STORAGE`.
 
 Required environment variables:
 
@@ -34,7 +36,6 @@ Given the following script:
 #!/bin/bash
 # Taken from
 # https://github.com/toptal/haste-server/issues/54#issuecomment-282489506
-
 
 URL="https://example.com"
 SECRET_KEY="secret_password"
@@ -90,8 +91,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-
 ```
 
 ## Buy me a coffee?
