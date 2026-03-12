@@ -152,7 +152,30 @@ textarea {
 #box2 .function.twitter { background-position: -153px top; }
 #box2 .function.enabled.twitter { background-position: -153px center; }
 #box2 .function.enabled.twitter:hover { background-position: -153px bottom; }
-#box2 .button-picture{ border-width: 0; font-size: inherit; }
+#box2 .button-picture { border-width: 0; font-size: inherit; }
+
+#box2 .button-text {
+  background: none;
+  border: 0;
+  color: #555;
+  font-family: Helvetica, sans-serif;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  height: 37px;
+  padding: 0 8px;
+  cursor: default;
+}
+
+#box2 .button-text.enabled {
+  color: #999;
+}
+
+#box2 .button-text.enabled:hover {
+  color: #fff;
+  cursor: pointer;
+}
 
 #messages {
   position: fixed;
@@ -173,3 +196,74 @@ textarea {
   background:rgba(102,8,0,0.8);
 }
 
+/* utility */
+
+.hidden {
+  display: none !important;
+}
+
+/* auth modal */
+
+#auth-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.auth-modal {
+  background: #2f3029;
+  padding: 20px;
+  border-radius: 4px;
+  min-width: 300px;
+}
+
+.auth-modal label {
+  display: block;
+  color: #999;
+  font-family: Helvetica, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.auth-modal input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #23241f;
+  border: 1px solid #46483e;
+  color: #fff;
+  font-family: monospace;
+  font-size: 14px;
+  padding: 8px;
+  outline: none;
+}
+
+.auth-modal input:focus {
+  border-color: #75715e;
+}
+
+.auth-actions {
+  margin-top: 12px;
+  text-align: right;
+}
+
+.auth-actions button {
+  background: #46483e;
+  border: 0;
+  color: #fff;
+  font-family: Helvetica, sans-serif;
+  font-size: 12px;
+  padding: 6px 16px;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.auth-actions button:hover {
+  background: #75715e;
+}

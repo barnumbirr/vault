@@ -1,19 +1,57 @@
+import { KEY_PATTERN, JSON_HEADERS, jsonError, timingSafeEqual } from "../lib/shared.js";
+
 export async function onRequest(ctx) {
-    if (ctx.request.method != "GET"){
-        return new Response("Method not allowed.", {status: 405});
-    }
+  const key = ctx.params.key;
 
-    const content = await ctx.env.STORAGE.get(`documents:${ctx.params.key}`, {cacheTtl: ctx.env.CACHE_TTL});
+  if (!KEY_PATTERN.test(key)) {
+    return jsonError("Invalid document key.", 400);
+  }
 
-    if (!content) {
-        return new Response(`Document "${ctx.params.key}" not found.`, {status: 404});
-    }
+  if (ctx.request.method === "GET") {
+    return handleGet(ctx, key);
+  }
 
-    const json = { key: ctx.params.key, data: content};
-    const headers = {
-      "Content-Type": "application/json; charset=UTF-8",
-    };
+  if (ctx.request.method === "DELETE") {
+    return handleDelete(ctx, key);
+  }
 
-    const data = JSON.stringify(json);
-    return new Response(data, { headers, status: 200 });
+  return jsonError("Method not allowed.", 405);
+}
+
+async function handleGet(ctx, key) {
+  const cacheTtl = Number(ctx.env.CACHE_TTL) || 60;
+  const content = await ctx.env.STORAGE.get(`documents:${key}`, { cacheTtl });
+
+  if (!content) {
+    return jsonError(`Document "${key}" not found.`, 404);
+  }
+
+  return new Response(JSON.stringify({ key, data: content }), {
+    status: 200,
+    headers: {
+      ...JSON_HEADERS,
+      "Cache-Control": `public, max-age=${cacheTtl}`,
+    },
+  });
+}
+
+async function handleDelete(ctx, key) {
+  const secret = ctx.request.headers.get('Authorization') || '';
+
+  if (!timingSafeEqual(secret, ctx.env.SECRET_KEY)) {
+    return jsonError("Unauthorized.", 401);
+  }
+
+  const content = await ctx.env.STORAGE.get(`documents:${key}`);
+
+  if (!content) {
+    return jsonError(`Document "${key}" not found.`, 404);
+  }
+
+  await ctx.env.STORAGE.delete(`documents:${key}`);
+
+  return new Response(JSON.stringify({ message: "Document deleted." }), {
+    status: 200,
+    headers: JSON_HEADERS,
+  });
 }

@@ -1,48 +1,22 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
-    <title>vault.tf</title>
     <meta charset="utf-8" />
-    <meta name="robots" content="noindex,nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <title>vault</title>
     <link rel="stylesheet" type="text/css" href="monokai-sublime.css" />
     <link rel="stylesheet" type="text/css" href="application.css" />
-    <script type="text/javascript" src="jquery-1.7.1.min.js"></script>
-    <script type="text/javascript" src="highlight.min.js"></script>
-    <script type="text/javascript" src="application.min.js"></script>
-    <script type="text/javascript">
-      var app = null;
-      // Handle pops
-      var handlePop = function (evt) {
-        var path = evt.target.location.pathname;
-        if (path === "/") {
-          app.newDocument(true);
-        } else {
-          app.loadDocument(path.substring(1, path.length));
-        }
-      };
-      // Set up the pop state to handle loads, skipping the first load
-      // to make chrome behave like others:
-      // http://code.google.com/p/chromium/issues/detail?id=63040
-      setTimeout(function () {
-        window.onpopstate = function (evt) {
-          try {
-            handlePop(evt);
-          } catch (err) {
-            /* not loaded yet */
-          }
-        };
-      }, 1000);
-      // Construct app and load initial path
-      $(function () {
-        app = new haste("✂️ vault.tf", { twitter: false });
-        handlePop({ target: window });
-      });
-    </script>
+    <script defer src="highlight.min.js"></script>
+    <script defer src="application.js"></script>
+    <script defer src="init.js"></script>
+    <script defer data-api="/zk/api/event" src="/zk/js/script.js"></script>
   </head>
 
   <body>
     <ul id="messages"></ul>
     <div id="key">
-      <div id="pointer" style="display: none"></div>
+      <div id="pointer" class="hidden"></div>
       <div id="box1">
         <a href="/about" class="logo"></a>
       </div>
@@ -52,14 +26,26 @@
         <button class="duplicate function button-picture">Duplicate & Edit</button>
         <button class="raw function button-picture">Just Text</button>
         <button class="twitter function button-picture">Twitter</button>
+        <button class="copy function button-text">Copy URL</button>
+        <button class="delete function button-text">Delete</button>
       </div>
-      <div id="box3" style="display: none">
+      <div id="box3" class="hidden">
         <div class="label"></div>
         <div class="shortcut"></div>
       </div>
     </div>
+    <div id="auth-overlay" class="hidden">
+      <form id="auth-form" class="auth-modal">
+        <label for="auth-input">Secret key</label>
+        <input id="auth-input" type="password" autocomplete="off" />
+        <div class="auth-actions">
+          <button type="submit">OK</button>
+          <button type="button" id="auth-cancel">Cancel</button>
+        </div>
+      </form>
+    </div>
     <div id="linenos"></div>
-    <pre id="box" style="display: none" class="hljs" tabindex="0"><code></code></pre>
-    <textarea spellcheck="false" style="display: none"></textarea>
+    <pre id="box" class="hljs hidden" tabindex="0"><code></code></pre>
+    <textarea spellcheck="false" class="hidden"></textarea>
   </body>
 </html>

@@ -1,60 +1,85 @@
+import { JSON_HEADERS, jsonError, timingSafeEqual } from "./lib/shared.js";
+
+const MAX_KEY_RETRIES = 5;
+const MIN_TTL = 60;
+const MAX_TTL = 31536000; // 1 year in seconds
+const DEFAULT_KEY_SIZE = 6;
+const DEFAULT_MAX_SIZE = 1048576; // 1 MB
+
 export async function onRequest(ctx) {
-  	const secret = ctx.request.headers.get('Authorization');
-  	const ttl = ctx.request.headers.get('Expiration');
+  const secret = ctx.request.headers.get('Authorization') || '';
 
-  	if (secret !== ctx.env.SECRET_KEY) {
-	  	return new Response("Unauthorized.", {status: 401});
-  	}
+  if (!timingSafeEqual(secret, ctx.env.SECRET_KEY)) {
+    return jsonError("Unauthorized.", 401);
+  }
 
-  	if (ctx.request.method != "POST") {
-		return new Response("Method not allowed.", {status: 405});
-  	}
+  if (ctx.request.method !== "POST") {
+    return jsonError("Method not allowed.", 405);
+  }
 
-  	const url = new URL(ctx.request.url)
+  const maxSize = Number(ctx.env.MAX_DOCUMENT_SIZE) || DEFAULT_MAX_SIZE;
 
-  	const length = Number(ctx.request.headers.get("Content-Length") || 0);
+  // Fast-reject via Content-Length header before reading the body
+  const declaredLength = Number(ctx.request.headers.get("Content-Length") || 0);
+  if (declaredLength > maxSize) {
+    return jsonError(`Content must be shorter than ${maxSize} (was ${declaredLength}).`, 400);
+  }
 
-  	if (!length) {
-		return new Response("Content must contain at least one character.", {status: 400});
-  	}
+  const content = await ctx.request.text();
+  const actualLength = new TextEncoder().encode(content).byteLength;
 
-  	if (length > ctx.env.MAX_DOCUMENT_SIZE) {
-		return new Response(`Content must be shorter than ${MAX_DOCUMENT_SIZE} (was ${length}).`, {status: 400});
-  	}
+  if (actualLength === 0) {
+    return jsonError("Content must contain at least one character.", 400);
+  }
 
-  	const id = generateId(ctx);
+  if (actualLength > maxSize) {
+    return jsonError(`Content must be shorter than ${maxSize} (was ${actualLength}).`, 400);
+  }
 
-  	if (await ctx.env.STORAGE.get(`documents:${id}`) !== null) {
-		const id = generateId(ctx);
-  	}
+  let id;
+  for (let attempt = 0; attempt < MAX_KEY_RETRIES; attempt++) {
+    id = generateId(ctx);
+    if (await ctx.env.STORAGE.get(`documents:${id}`) === null) {
+      break;
+    }
+    if (attempt === MAX_KEY_RETRIES - 1) {
+      return jsonError("Failed to generate a unique key. Try again.", 503, { "Retry-After": "1" });
+    }
+  }
 
-  	const content = await ctx.request.text();
-  	let options = {};
-	if (ttl >= 60) {
-		options = { expirationTtl: ttl }
-	}
+  const ttl = Number(ctx.request.headers.get('Expiration')) || 0;
+  let options = {};
 
-  	await ctx.env.STORAGE.put(`documents:${id}`, content, options);
+  if (ttl >= MIN_TTL) {
+    options = { expirationTtl: Math.min(ttl, MAX_TTL) };
+  }
 
-  	const json = {
-		key: id,
-		url: `https://${url.hostname}/${id}`,
-  	};
-  	const headers = {
-		"Content-Type": "application/json; charset=UTF-8",
-  	};
+  await ctx.env.STORAGE.put(`documents:${id}`, content, options);
 
-  	const data = JSON.stringify(json);
-  	return new Response(data, { headers, status: 200 });
+  const url = new URL(ctx.request.url);
+  const json = {
+    key: id,
+    url: `${url.protocol}//${url.hostname}/${id}`,
+  };
+
+  return new Response(JSON.stringify(json), { headers: JSON_HEADERS, status: 200 });
 }
 
 function generateId(ctx) {
-	let id = "";
-	const keyspace = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const keyspace = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const size = Number(ctx.env.DOCUMENT_KEY_SIZE) || DEFAULT_KEY_SIZE;
+  const limit = keyspace.length * Math.floor(256 / keyspace.length);
 
-	for (let i = 0; i < ctx.env.DOCUMENT_KEY_SIZE; i++) {
-		id += keyspace.charAt(Math.random() * keyspace.length);
-	}
+  let id = "";
+  while (id.length < size) {
+    const bytes = new Uint8Array(size - id.length);
+    crypto.getRandomValues(bytes);
+    for (let i = 0; i < bytes.length && id.length < size; i++) {
+      if (bytes[i] < limit) {
+        id += keyspace.charAt(bytes[i] % keyspace.length);
+      }
+    }
+  }
 
-	return id;
+  return id;
 }
