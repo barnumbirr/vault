@@ -39,7 +39,12 @@ export async function onRequest(ctx) {
   let id;
   for (let attempt = 0; attempt < MAX_KEY_RETRIES; attempt++) {
     id = generateId(ctx);
-    if (await ctx.env.STORAGE.get(`documents:${id}`) === null) {
+    // A key is free only if it holds neither live content nor a deletion
+    // tombstone. Reusing a tombstoned key would leave the new paste
+    // permanently shadowed by the old gravestone (tombstones are permanent).
+    const live = (await ctx.env.STORAGE.get(`documents:${id}`)) !== null;
+    const tombstoned = !live && (await ctx.env.STORAGE.get(`tombstone:${id}`)) !== null;
+    if (!live && !tombstoned) {
       break;
     }
     if (attempt === MAX_KEY_RETRIES - 1) {

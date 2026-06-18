@@ -20,7 +20,8 @@ All static assets are copied from the original
 - Copy-to-clipboard and delete buttons in the UI
 - Password-masked auth prompt for uploads and deletes
 - Plausible analytics via self-hosted proxy worker (optional)
-- Edge + browser caching via `Cache-Control` headers
+- Long browser + KV read caching of immutable pastes (`CACHE_TTL`)
+- Deletions propagate globally within ~60s via deletion tombstones
 
 ## Deploy
 
@@ -31,7 +32,7 @@ Required environment variables:
 
 | Variable | Description |
 | --- | --- |
-| `CACHE_TTL` | Edge cache duration in seconds for GET requests |
+| `CACHE_TTL` | Cache duration in seconds for document reads (KV read cache + browser `max-age`) |
 | `DOCUMENT_KEY_SIZE` | Length of generated document keys (default: 6) |
 | `MAX_DOCUMENT_SIZE` | Maximum document size in bytes |
 | `SECRET_KEY` | Authorization secret for uploads |

@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.1] - 2026-06-18
+
+### Fixed
+
+- Deleted documents could keep serving for up to `CACHE_TTL` (24h in
+  production) because KV's per-colo read cache has no purge API. Reads now
+  gate on a short-cached deletion tombstone, so a deleted document stops
+  serving within ~60 seconds globally — even where its body is still in a
+  colo's long read cache. Document reads keep the full `CACHE_TTL` window;
+  pastes are immutable, so the read path is unchanged.
+
 ## [2.0.0] - 2026-03-12
 
 ### Added

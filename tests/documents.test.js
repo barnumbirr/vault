@@ -140,7 +140,28 @@ describe("POST /documents", () => {
     const ctx = postCtx("collision test", {}, { STORAGE: storage });
     const res = await onRequest(ctx);
     expect(res.status).toBe(200);
-    expect(getCalls).toBe(2);
+    // attempt 1: content read collides; attempt 2: content read free, then
+    // the tombstone probe confirms the key is fully free.
+    expect(getCalls).toBe(3);
+  });
+
+  it("regenerates when a candidate key is tombstoned", async () => {
+    const storage = createKVMock();
+    let tombstoneReads = 0;
+    storage.get = (key) => {
+      if (key.startsWith("documents:")) return Promise.resolve(null);
+      if (key.startsWith("tombstone:")) {
+        tombstoneReads++;
+        // First candidate is tombstoned, second is clean.
+        return Promise.resolve(tombstoneReads === 1 ? "1" : null);
+      }
+      return Promise.resolve(null);
+    };
+
+    const ctx = postCtx("avoid reusing a deleted key", {}, { STORAGE: storage });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(200);
+    expect(tombstoneReads).toBe(2);
   });
 
   it("returns 503 with Retry-After when all key retries are exhausted", async () => {
@@ -153,6 +174,21 @@ describe("POST /documents", () => {
     expect(res.headers.get("Retry-After")).toBe("1");
     const json = await res.json();
     expect(json.message).toContain("unique key");
+  });
+
+  it("returns 503 when every candidate key is tombstoned", async () => {
+    // Content slot always free, but every candidate already has a tombstone:
+    // the guard must keep treating the key as taken until retries run out.
+    const storage = createKVMock();
+    storage.get = (key) => {
+      if (key.startsWith("documents:")) return Promise.resolve(null);
+      return Promise.resolve("1");
+    };
+
+    const ctx = postCtx("all tombstoned", {}, { STORAGE: storage });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(503);
+    expect(res.headers.get("Retry-After")).toBe("1");
   });
 
   it("checks auth before method", async () => {

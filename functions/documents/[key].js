@@ -1,4 +1,4 @@
-import { KEY_PATTERN, JSON_HEADERS, jsonError, timingSafeEqual } from "../lib/shared.js";
+import { KEY_PATTERN, JSON_HEADERS, jsonError, timingSafeEqual, readLiveDocument } from "../lib/shared.js";
 
 export async function onRequest(ctx) {
   const key = ctx.params.key;
@@ -19,8 +19,7 @@ export async function onRequest(ctx) {
 }
 
 async function handleGet(ctx, key) {
-  const cacheTtl = Number(ctx.env.CACHE_TTL) || 60;
-  const content = await ctx.env.STORAGE.get(`documents:${key}`, { cacheTtl });
+  const { content, cacheTtl } = await readLiveDocument(ctx, key);
 
   if (!content) {
     return jsonError(`Document "${key}" not found.`, 404);
@@ -48,6 +47,13 @@ async function handleDelete(ctx, key) {
     return jsonError(`Document "${key}" not found.`, 404);
   }
 
+  // Write the tombstone before removing the body. Reads gate on this
+  // short-cached marker, so the deletion is visible within
+  // TOMBSTONE_CACHE_TTL seconds even in colos still serving the body from
+  // KV's long per-colo read cache. The tombstone is permanent: it must
+  // outlive any colo's cached copy of the body, and it keeps a regenerated
+  // key (vanishingly unlikely) from resurrecting under the old gravestone.
+  await ctx.env.STORAGE.put(`tombstone:${key}`, "1");
   await ctx.env.STORAGE.delete(`documents:${key}`);
 
   return new Response(JSON.stringify({ message: "Document deleted." }), {

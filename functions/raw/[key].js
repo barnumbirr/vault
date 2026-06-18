@@ -1,4 +1,4 @@
-import { KEY_PATTERN, jsonError } from "../lib/shared.js";
+import { KEY_PATTERN, jsonError, readLiveDocument } from "../lib/shared.js";
 
 export async function onRequest(ctx) {
   if (ctx.request.method !== "GET") {
@@ -11,8 +11,7 @@ export async function onRequest(ctx) {
     return jsonError("Invalid document key.", 400);
   }
 
-  const cacheTtl = Number(ctx.env.CACHE_TTL) || 60;
-  const content = await ctx.env.STORAGE.get(`documents:${key}`, { cacheTtl });
+  const { content, cacheTtl } = await readLiveDocument(ctx, key);
 
   if (!content) {
     return jsonError(`Document "${key}" not found.`, 404);

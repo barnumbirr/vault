@@ -132,6 +132,35 @@ describe("GET /documents/:key", () => {
     const json = await res.json();
     expect(json.data).toBe(content);
   });
+
+  it("returns 404 when a tombstone exists even though the body is still cached", async () => {
+    // Models a colo still holding the body in its long read cache after a delete.
+    const ctx = getCtx("stale1", { "documents:stale1": "stale body", "tombstone:stale1": "1" });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(404);
+    const json = await res.json();
+    expect(json.message).toContain("not found");
+  });
+
+  it("reads the tombstone with a short cacheTtl, the body with CACHE_TTL", async () => {
+    const storage = createKVMock({ "documents:t1": "data" });
+    const seen = {};
+    const origGet = storage.get.bind(storage);
+    storage.get = (key, options) => {
+      seen[key.split(":")[0]] = options;
+      return origGet(key);
+    };
+
+    const ctx = createCtx({
+      method: "GET",
+      url: "https://vault.tf/documents/t1",
+      params: { key: "t1" },
+      env: { STORAGE: storage, CACHE_TTL: "86400" },
+    });
+    await onRequest(ctx);
+    expect(seen.tombstone.cacheTtl).toBe(60);
+    expect(seen.documents.cacheTtl).toBe(86400);
+  });
 });
 
 describe("DELETE /documents/:key", () => {
@@ -195,6 +224,42 @@ describe("DELETE /documents/:key", () => {
     const ctx = deleteCtx("abc123", { "documents:abc123": "data" });
     const res = await onRequest(ctx);
     expect(res.headers.get("Content-Type")).toBe("application/json; charset=UTF-8");
+  });
+
+  it("writes a permanent tombstone and removes the body", async () => {
+    const ctx = deleteCtx("abc123", { "documents:abc123": "to delete" });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(200);
+    expect(await ctx.env.STORAGE.get("tombstone:abc123")).toBe("1");
+    expect(await ctx.env.STORAGE.get("documents:abc123")).toBeNull();
+  });
+
+  it("writes the tombstone before deleting the body", async () => {
+    // Ordering invariant: there must be no window where the body is gone but
+    // no tombstone exists yet to shadow a stale colo read.
+    const storage = createKVMock({ "documents:order1": "body" });
+    const calls = [];
+    const origPut = storage.put.bind(storage);
+    const origDelete = storage.delete.bind(storage);
+    storage.put = (key, value, options) => {
+      calls.push(`put ${key}`);
+      return origPut(key, value, options);
+    };
+    storage.delete = (key) => {
+      calls.push(`delete ${key}`);
+      return origDelete(key);
+    };
+
+    const ctx = createCtx({
+      method: "DELETE",
+      url: "https://vault.tf/documents/order1",
+      params: { key: "order1" },
+      headers: { Authorization: DEFAULT_ENV.SECRET_KEY },
+      env: { STORAGE: storage },
+    });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(200);
+    expect(calls).toEqual(["put tombstone:order1", "delete documents:order1"]);
   });
 
   it("GET returns 404 after DELETE", async () => {

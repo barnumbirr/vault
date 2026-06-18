@@ -103,4 +103,12 @@ describe("GET /raw/:key", () => {
     const res = await onRequest(ctx);
     expect(await res.text()).toBe(content);
   });
+
+  it("returns 404 when a tombstone exists even though the body is still cached", async () => {
+    const ctx = rawCtx("stale1", { "documents:stale1": "stale body", "tombstone:stale1": "1" });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(404);
+    const json = await res.json();
+    expect(json.message).toContain("not found");
+  });
 });
