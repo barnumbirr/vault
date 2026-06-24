@@ -29,6 +29,10 @@ the `vault.tf` wordmark are custom (see [Credits](#credits)).
 Fork repository, create a `Pages` project and connect it to your forked repo,
 then map a KV Namespace called `STORAGE`.
 
+Set the Pages **build command** to `npm run build` and the **build output
+directory** to `static`. The build renders `README.md` into `static/about.html`,
+served at `/about`.
+
 Required environment variables:
 
 | Variable | Description |

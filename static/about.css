@@ -1,0 +1,157 @@
+:root {
+  --bg: #23241f;
+  --fg: #d2d2c4;
+  --muted: #8a8a7a;
+  --accent: #8fbcc8;
+  --rule: #3a3b33;
+  --code-bg: #1e1f1a;
+  --inline-bg: #2f3029;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.readme {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 24px 96px;
+}
+
+.home {
+  display: inline-block;
+  margin-bottom: 28px;
+  color: var(--accent);
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.home:hover {
+  text-decoration: underline;
+}
+
+.readme h1,
+.readme h2,
+.readme h3,
+.readme h4 {
+  color: #f2f2ea;
+  line-height: 1.25;
+  margin: 1.8em 0 0.6em;
+  font-weight: 600;
+}
+
+.readme h1 {
+  font-size: 1.9em;
+  margin-top: 0;
+}
+
+.readme h2 {
+  font-size: 1.4em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--rule);
+}
+
+.readme h3 {
+  font-size: 1.15em;
+}
+
+.readme p,
+.readme ul,
+.readme ol,
+.readme blockquote,
+.readme table,
+.readme pre {
+  margin: 0 0 1em;
+}
+
+.readme a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.readme a:hover {
+  text-decoration: underline;
+}
+
+.readme strong {
+  color: #ecece0;
+}
+
+.readme code {
+  font-family: ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.88em;
+  background: var(--inline-bg);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+
+.readme pre {
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 14px 16px;
+  overflow-x: auto;
+}
+
+.readme pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+  color: #d6d6c8;
+}
+
+.readme blockquote {
+  border-left: 3px solid var(--accent);
+  margin-left: 0;
+  padding: 0.2em 0 0.2em 1em;
+  color: var(--muted);
+}
+
+.readme table {
+  border-collapse: collapse;
+  width: 100%;
+  display: block;
+  overflow-x: auto;
+}
+
+.readme th,
+.readme td {
+  border: 1px solid var(--rule);
+  padding: 7px 12px;
+  text-align: left;
+}
+
+.readme th {
+  background: var(--inline-bg);
+  color: #ecece0;
+  font-weight: 600;
+}
+
+.readme hr {
+  border: none;
+  border-top: 1px solid var(--rule);
+  margin: 2em 0;
+}
+
+.readme img {
+  max-width: 100%;
+}
+
+.readme ul,
+.readme ol {
+  padding-left: 1.5em;
+}
+
+.readme li {
+  margin: 0.25em 0;
+}

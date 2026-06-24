@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node scripts/build-about.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -12,6 +13,7 @@
   },
   "devDependencies": {
     "jsdom": "^29.1.1",
+    "marked": "^18.0.5",
     "vitest": "^4.1.9"
   }
 }

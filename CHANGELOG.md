@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Toolbar icons are now inline SVG ([Bootstrap Icons](https://icons.getbootstrap.com), MIT); the Copy URL and Delete buttons gained icons (previously text-only).
 - New `vault.tf` wordmark in place of the upstream hastebin logo.
 - Tooltip tail is now drawn in CSS; `static/` no longer ships any images.
+- `/about` is now a rendered static page built from `README.md` at deploy (`npm run build`), replacing the hand-seeded KV paste so it always matches the README.
 
 ### Fixed
 
