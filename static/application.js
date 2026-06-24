@@ -392,8 +392,8 @@ class Haste {
         el: document.querySelector('#box2 .raw'),
         label: 'Just Text',
         shortcutDescription: 'control + shift + r',
-        shortcut: function (evt) { return evt.ctrlKey && evt.shiftKey && evt.keyCode === 82; },
-        action: function () { window.location.href = '/raw/' + self.doc.key; },
+        shortcut: function (evt) { return self.doc.locked && evt.ctrlKey && evt.shiftKey && evt.keyCode === 82; },
+        action: function () { if (!self.doc.locked) return; window.location.href = '/raw/' + self.doc.key; },
       },
       {
         el: document.querySelector('#box2 .twitter'),

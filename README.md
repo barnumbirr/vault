@@ -6,8 +6,9 @@ and Workers KV.
 Heavily inspired by [`LostLuma/starbin`](https://github.com/LostLuma/starbin)
 and [`Erisa/starbin-pages`](https://github.com/Erisa/starbin-pages).
 
-All static assets are copied from the original
-[`haste-server`](https://github.com/toptal/haste-server).
+Most static assets are copied from the original
+[`haste-server`](https://github.com/toptal/haste-server); the toolbar icons and
+the `vault.tf` wordmark are custom (see [Credits](#credits)).
 
 ## Features
 
@@ -179,6 +180,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## Credits
+
+- Toolbar icons: [Bootstrap Icons](https://icons.getbootstrap.com), MIT —
+  Copyright (c) 2019-2024 The Bootstrap Authors.
+- The `vault.tf` wordmark is set in [Lato](https://www.latofonts.com/) (SIL Open
+  Font License) and ships as outlined SVG paths, not the font file.
 
 ## Buy me a coffee?
 

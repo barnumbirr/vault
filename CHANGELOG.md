@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- Toolbar icons are now inline SVG ([Bootstrap Icons](https://icons.getbootstrap.com), MIT); the Copy URL and Delete buttons gained icons (previously text-only).
+- New `vault.tf` wordmark in place of the upstream hastebin logo.
+- Tooltip tail is now drawn in CSS; `static/` no longer ships any images.
+
+### Fixed
+
+- `Ctrl+Shift+R` on an unsaved document no longer navigates to `/raw/null`.
+
 ## [2.0.1] - 2026-06-18
 
 ### Fixed

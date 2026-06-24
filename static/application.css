@@ -74,19 +74,33 @@ textarea {
   padding: 0px 5px;
 }
 
+/* "vault.tf" wordmark — text outlined to inline SVG paths (set in Lato,
+   SIL OFL), themed here to match the old logo sprite: teal by default,
+   white on hover, with the .tf TLD dimmed behind the name. */
 #box1 a.logo, #box1 a.logo:visited {
   display: inline-block;
-  background: url(logo.png);
   width: 126px;
   height: 42px;
+  line-height: 42px;
+  text-align: center;
 }
 
-#box1 a.logo:hover {
-  background-position: 0 bottom;
+#box1 a.logo svg {
+  height: 30px;
+  width: auto;
+  vertical-align: middle;
+  fill: #8fbcc8;
+}
+
+#box1 a.logo .wm-tld {
+  fill-opacity: 0.6;
+}
+
+#box1 a.logo:hover svg {
+  fill: #fff;
 }
 
 #box2 .function {
-  background: url(function-icons.png);
   width: 32px;
   height: 37px;
   display: inline-block;
@@ -102,11 +116,15 @@ textarea {
   cursor: pointer;
 }
 
+/* Dropdown tail — CSS triangle (replaces hover-dropdown-tip.png). Apex points
+   up at the hovered button; teal to match the enabled icons and stay legible. */
 #pointer {
   display: block;
-  height: 5px;
-  width: 10px;
-  background: url(hover-dropdown-tip.png);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid #8fbcc8;
   bottom: 0px;
   position: absolute;
   margin: auto;
@@ -133,48 +151,32 @@ textarea {
   font-weight: normal;
 }
 
-#box2 .function.save { background-position: -5px top; }
-#box2 .function.enabled.save { background-position: -5px center; }
-#box2 .function.enabled.save:hover { background-position: -5px bottom; }
-
-#box2 .function.new { background-position: -42px top; }
-#box2 .function.enabled.new { background-position: -42px center; }
-#box2 .function.enabled.new:hover { background-position: -42px bottom; }
-
-#box2 .function.duplicate { background-position: -79px top; }
-#box2 .function.enabled.duplicate { background-position: -79px center; }
-#box2 .function.enabled.duplicate:hover { background-position: -79px bottom; }
-
-#box2 .function.raw { background-position: -116px top; }
-#box2 .function.enabled.raw { background-position: -116px center; }
-#box2 .function.enabled.raw:hover { background-position: -116px bottom; }
-
-#box2 .function.twitter { background-position: -153px top; }
-#box2 .function.enabled.twitter { background-position: -153px center; }
-#box2 .function.enabled.twitter:hover { background-position: -153px bottom; }
-#box2 .button-picture { border-width: 0; font-size: inherit; }
-
-#box2 .button-text {
+/* Toolbar icons use Bootstrap Icons (https://icons.getbootstrap.com),
+   MIT License, Copyright (c) 2019-2024 The Bootstrap Authors. The glyphs
+   are inlined as SVG in index.html and themed here; the three fills mirror
+   the disabled / enabled / hover states of the old sprite sheet. */
+#box2 .button-icon {
   background: none;
   border: 0;
-  color: #555;
-  font-family: Helvetica, sans-serif;
-  font-size: 10px;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  height: 37px;
-  padding: 0 8px;
-  cursor: default;
+  padding: 0;
 }
 
-#box2 .button-text.enabled {
-  color: #999;
+#box2 .button-icon svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%);
+  fill: #255662;
 }
 
-#box2 .button-text.enabled:hover {
-  color: #fff;
-  cursor: pointer;
+#box2 .button-icon.enabled svg {
+  fill: #8fbcc8;
+}
+
+#box2 .button-icon.enabled:hover svg {
+  fill: #bfe3ec;
 }
 
 #messages {
