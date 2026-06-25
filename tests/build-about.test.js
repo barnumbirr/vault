@@ -50,4 +50,8 @@ describe("renderAbout", () => {
   it("links back to the app root", () => {
     expect(html).toContain('href="/"');
   });
+
+  it("links to the GitHub repository", () => {
+    expect(html).toContain('href="https://github.com/barnumbirr/vault"');
+  });
 });

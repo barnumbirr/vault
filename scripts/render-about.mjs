@@ -17,7 +17,10 @@ export function renderAbout(markdown) {
   </head>
   <body>
     <main class="readme">
-      <a class="home" href="/">&larr; back to vault.tf</a>
+      <nav class="about-nav">
+        <a class="home" href="/">&larr; back to vault.tf</a>
+        <a class="source" href="https://github.com/barnumbirr/vault" target="_blank" rel="noopener noreferrer">Source on GitHub &#8599;</a>
+      </nav>
 ${body}
     </main>
   </body>

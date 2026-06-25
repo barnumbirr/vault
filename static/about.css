@@ -27,16 +27,23 @@ body {
   padding: 32px 24px 96px;
 }
 
-.home {
-  display: inline-block;
+.about-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
   margin-bottom: 28px;
+}
+
+.about-nav a {
   color: var(--accent);
   font-family: ui-monospace, Menlo, Consolas, monospace;
   font-size: 13px;
   text-decoration: none;
 }
 
-.home:hover {
+.about-nav a:hover {
   text-decoration: underline;
 }
 
