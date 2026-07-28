@@ -1,4 +1,7 @@
-export const KEY_PATTERN = /^[a-zA-Z0-9]+$/;
+// Bounded: KV rejects keys over 512 bytes, so an unbounded pattern lets a
+// long URL throw inside STORAGE.get and surface as a 500. 64 is comfortably
+// above any DOCUMENT_KEY_SIZE in use.
+export const KEY_PATTERN = /^[a-zA-Z0-9]{1,64}$/;
 
 export const JSON_HEADERS = { "Content-Type": "application/json; charset=UTF-8" };
 
@@ -32,6 +35,29 @@ export async function readLiveDocument(ctx, key) {
   return { content, cacheTtl };
 }
 
+// Authorize a request against SECRET_KEY. Returns null when authorized,
+// otherwise the error Response to send. Fails closed when SECRET_KEY is
+// unset or empty: without this guard, an empty Authorization header would
+// compare equal to an empty secret and turn a misconfigured deployment
+// into an open pastebin with delete rights.
+export function requireAuth(ctx) {
+  if (!ctx.env.SECRET_KEY) {
+    return jsonError("Server misconfigured: SECRET_KEY is not set.", 500);
+  }
+
+  const secret = ctx.request.headers.get('Authorization') || '';
+  if (!timingSafeEqual(secret, ctx.env.SECRET_KEY)) {
+    return jsonError("Unauthorized.", 401);
+  }
+
+  return null;
+}
+
+// HEAD must mirror GET's status and headers with no body.
+export function withoutBody(res) {
+  return new Response(null, { status: res.status, headers: res.headers });
+}
+
 export function jsonError(message, status, extraHeaders = {}) {
   return new Response(JSON.stringify({ message }), {
     status,
@@ -48,6 +74,12 @@ export function timingSafeEqual(a, b) {
   if (typeof crypto !== 'undefined' && crypto.subtle && typeof crypto.subtle.timingSafeEqual === 'function') {
     if (bufA.byteLength !== bufB.byteLength) {
       crypto.subtle.timingSafeEqual(bufB, bufB);
+      return false;
+    }
+    // Two empty inputs must not compare equal (native would return true,
+    // the XOR fallback below returns false — keep both branches agreeing,
+    // and never let an empty secret authenticate an empty header).
+    if (bufA.byteLength === 0) {
       return false;
     }
     return crypto.subtle.timingSafeEqual(bufA, bufB);

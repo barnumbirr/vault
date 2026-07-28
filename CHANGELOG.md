@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Invalid or out-of-range `Expiration` values now return 400. **Previously
+  they were silently ignored and the paste stored permanently.**
+- `HEAD` supported on `/documents/:key` and `/raw/:key` (was 405).
 - Toolbar icons are now inline SVG ([Bootstrap Icons](https://icons.getbootstrap.com), MIT); the Copy URL and Delete buttons gained icons (previously text-only).
 - New `vault.tf` wordmark in place of the upstream hastebin logo.
 - Tooltip tail is now drawn in CSS; `static/` no longer ships any images.
@@ -17,9 +20,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - `Ctrl+Shift+R` on an unsaved document no longer navigates to `/raw/null`.
-- The editor textarea collapsed to two rows, making a multi-line paste appear
-  to keep only its last line (2.0.0 regression: the doctype switch to standards
-  mode broke `height: 100%`). It now sizes to the viewport.
+- The editor textarea collapsed to two rows, hiding all but the last pasted
+  line (2.0.0 regression); it now fills the viewport.
+- The 2.0.0 security headers (CSP, `X-Frame-Options`, `Permissions-Policy`)
+  were never served; `_headers` now ships in the publish directory.
+- Oversized document keys returned 500; keys are capped at 64 characters.
+- Auth fails closed (500) when `SECRET_KEY` is unset or empty.
+- Line numbers counted a phantom line after a trailing newline.
+- Keyboard shortcuts accept `Cmd` on macOS.
+- Back/forward navigation in the first second after load was ignored.
 
 ## [2.0.1] - 2026-06-18
 

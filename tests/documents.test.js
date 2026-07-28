@@ -98,7 +98,7 @@ describe("POST /documents", () => {
     expect(putOptions).toEqual({ expirationTtl: 3600 });
   });
 
-  it("ignores Expiration header below 60", async () => {
+  it("stores permanently when no Expiration header is sent", async () => {
     const storage = createKVMock();
     let putOptions;
     const origPut = storage.put.bind(storage);
@@ -107,13 +107,13 @@ describe("POST /documents", () => {
       return origPut(key, value, options);
     };
 
-    const ctx = postCtx("no expire", { Expiration: "30" }, { STORAGE: storage });
+    const ctx = postCtx("permanent", {}, { STORAGE: storage });
     const res = await onRequest(ctx);
     expect(res.status).toBe(200);
     expect(putOptions).toEqual({});
   });
 
-  it("clamps Expiration to MAX_TTL (1 year)", async () => {
+  it("accepts Expiration at exactly MAX_TTL", async () => {
     const storage = createKVMock();
     let putOptions;
     const origPut = storage.put.bind(storage);
@@ -122,10 +122,50 @@ describe("POST /documents", () => {
       return origPut(key, value, options);
     };
 
-    const ctx = postCtx("long live", { Expiration: "999999999" }, { STORAGE: storage });
+    const ctx = postCtx("one year", { Expiration: "31536000" }, { STORAGE: storage });
     const res = await onRequest(ctx);
     expect(res.status).toBe(200);
-    expect(putOptions.expirationTtl).toBe(31536000);
+    expect(putOptions).toEqual({ expirationTtl: 31536000 });
+  });
+
+  // Regression: out-of-range and malformed Expiration values used to be
+  // silently ignored, storing the paste permanently.
+  for (const [label, value] of [
+    ["below MIN_TTL", "30"],
+    ["zero", "0"],
+    ["above MAX_TTL", "999999999"],
+    ["non-numeric", "tomorrow"],
+    ["negative", "-60"],
+    ["fractional", "60.5"],
+    ["empty", ""],
+  ]) {
+    it(`rejects Expiration ${label} with 400 and stores nothing`, async () => {
+      const storage = createKVMock();
+      const ctx = postCtx("doomed input", { Expiration: value }, { STORAGE: storage });
+      const res = await onRequest(ctx);
+      expect(res.status).toBe(400);
+      const json = await res.json();
+      expect(json.message).toContain("Expiration must be an integer between 60 and 31536000");
+      expect(storage._store.size).toBe(0);
+    });
+  }
+
+  it("fails closed with 500 when SECRET_KEY is unset", async () => {
+    const ctx = createCtx({
+      method: "POST",
+      url: "https://vault.tf/documents",
+      body: "hello",
+      env: { SECRET_KEY: undefined },
+    });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(500);
+    expect((await res.json()).message).toContain("misconfigured");
+  });
+
+  it("fails closed with 500 when SECRET_KEY is empty", async () => {
+    const ctx = postCtx("hello", { Authorization: "" }, { SECRET_KEY: "" });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(500);
   });
 
   it("retries on key collision", async () => {

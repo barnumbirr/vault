@@ -1,10 +1,17 @@
-import { KEY_PATTERN, jsonError, readLiveDocument } from "../lib/shared.js";
+import { KEY_PATTERN, jsonError, readLiveDocument, withoutBody } from "../lib/shared.js";
 
 export async function onRequest(ctx) {
-  if (ctx.request.method !== "GET") {
+  const isHead = ctx.request.method === "HEAD";
+
+  if (ctx.request.method !== "GET" && !isHead) {
     return jsonError("Method not allowed.", 405);
   }
 
+  const res = await handleGet(ctx);
+  return isHead ? withoutBody(res) : res;
+}
+
+async function handleGet(ctx) {
   const key = ctx.params.key;
 
   if (!KEY_PATTERN.test(key)) {

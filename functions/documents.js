@@ -1,4 +1,4 @@
-import { JSON_HEADERS, jsonError, timingSafeEqual } from "./lib/shared.js";
+import { JSON_HEADERS, jsonError, requireAuth } from "./lib/shared.js";
 
 const MAX_KEY_RETRIES = 5;
 const MIN_TTL = 60;
@@ -7,14 +7,22 @@ const DEFAULT_KEY_SIZE = 6;
 const DEFAULT_MAX_SIZE = 1048576; // 1 MB
 
 export async function onRequest(ctx) {
-  const secret = ctx.request.headers.get('Authorization') || '';
-
-  if (!timingSafeEqual(secret, ctx.env.SECRET_KEY)) {
-    return jsonError("Unauthorized.", 401);
-  }
+  const authError = requireAuth(ctx);
+  if (authError) return authError;
 
   if (ctx.request.method !== "POST") {
     return jsonError("Method not allowed.", 405);
+  }
+
+  const expiration = ctx.request.headers.get("Expiration");
+  let options = {};
+
+  if (expiration !== null) {
+    const ttl = /^\d+$/.test(expiration.trim()) ? Number(expiration.trim()) : NaN;
+    if (!(ttl >= MIN_TTL && ttl <= MAX_TTL)) {
+      return jsonError(`Expiration must be an integer between ${MIN_TTL} and ${MAX_TTL} seconds.`, 400);
+    }
+    options = { expirationTtl: ttl };
   }
 
   const maxSize = Number(ctx.env.MAX_DOCUMENT_SIZE) || DEFAULT_MAX_SIZE;
@@ -50,13 +58,6 @@ export async function onRequest(ctx) {
     if (attempt === MAX_KEY_RETRIES - 1) {
       return jsonError("Failed to generate a unique key. Try again.", 503, { "Retry-After": "1" });
     }
-  }
-
-  const ttl = Number(ctx.request.headers.get('Expiration')) || 0;
-  let options = {};
-
-  if (ttl >= MIN_TTL) {
-    options = { expirationTtl: Math.min(ttl, MAX_TTL) };
   }
 
   await ctx.env.STORAGE.put(`documents:${id}`, content, options);

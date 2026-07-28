@@ -68,7 +68,7 @@ Upload a new document. Returns the key and URL.
 | Header | Required | Description |
 | --- | --- | --- |
 | `Authorization` | Yes | Must match `SECRET_KEY` |
-| `Expiration` | No | TTL in seconds (min 60, max 31536000) |
+| `Expiration` | No | TTL in seconds, 60–31536000; out-of-range or non-numeric values return 400. Omit for a permanent paste. |
 
 **Response:**
 

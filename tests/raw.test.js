@@ -111,4 +111,23 @@ describe("GET /raw/:key", () => {
     const json = await res.json();
     expect(json.message).toContain("not found");
   });
+
+  it("rejects a 65-character key with 400", async () => {
+    const ctx = rawCtx("a".repeat(65));
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(400);
+  });
+
+  it("HEAD mirrors GET's headers with an empty body", async () => {
+    const ctx = createCtx({
+      method: "HEAD",
+      url: "https://vault.tf/raw/abc123",
+      params: { key: "abc123" },
+      env: { STORAGE: createKVMock({ "documents:abc123": "hello world" }) },
+    });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toBe("text/plain; charset=UTF-8");
+    expect(await res.text()).toBe("");
+  });
 });

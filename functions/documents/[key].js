@@ -1,17 +1,23 @@
-import { KEY_PATTERN, JSON_HEADERS, jsonError, timingSafeEqual, readLiveDocument } from "../lib/shared.js";
+import { KEY_PATTERN, JSON_HEADERS, jsonError, requireAuth, readLiveDocument, withoutBody } from "../lib/shared.js";
 
 export async function onRequest(ctx) {
+  const isHead = ctx.request.method === "HEAD";
+  const res = await route(ctx, isHead ? "GET" : ctx.request.method);
+  return isHead ? withoutBody(res) : res;
+}
+
+async function route(ctx, method) {
   const key = ctx.params.key;
 
   if (!KEY_PATTERN.test(key)) {
     return jsonError("Invalid document key.", 400);
   }
 
-  if (ctx.request.method === "GET") {
+  if (method === "GET") {
     return handleGet(ctx, key);
   }
 
-  if (ctx.request.method === "DELETE") {
+  if (method === "DELETE") {
     return handleDelete(ctx, key);
   }
 
@@ -35,11 +41,8 @@ async function handleGet(ctx, key) {
 }
 
 async function handleDelete(ctx, key) {
-  const secret = ctx.request.headers.get('Authorization') || '';
-
-  if (!timingSafeEqual(secret, ctx.env.SECRET_KEY)) {
-    return jsonError("Unauthorized.", 401);
-  }
+  const authError = requireAuth(ctx);
+  if (authError) return authError;
 
   const content = await ctx.env.STORAGE.get(`documents:${key}`);
 

@@ -11,15 +11,9 @@ var handlePop = function (evt) {
   }
 };
 
-setTimeout(function () {
-  window.onpopstate = function (evt) {
-    try {
-      handlePop(evt);
-    } catch (err) {
-      /* not loaded yet */
-    }
-  };
-}, 1000);
+window.onpopstate = function (evt) {
+  if (app) handlePop(evt);
+};
 
 document.addEventListener('DOMContentLoaded', function () {
   var appName = '\u2702\uFE0F ' + window.location.hostname;

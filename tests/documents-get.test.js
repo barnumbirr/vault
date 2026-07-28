@@ -341,3 +341,62 @@ describe("Integration: POST → GET → DELETE", () => {
     expect(getRes2.status).toBe(404);
   });
 });
+
+describe("key length bound", () => {
+  // Regression: unbounded keys flowed into KV, whose 512-byte key limit
+  // threw and surfaced as a 500.
+  it("rejects a 65-character key with 400", async () => {
+    const ctx = getCtx("a".repeat(65));
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(400);
+    expect((await res.json()).message).toContain("Invalid document key");
+  });
+
+  it("accepts a 64-character key", async () => {
+    const key = "a".repeat(64);
+    const ctx = getCtx(key, { [`documents:${key}`]: "still fine" });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(200);
+  });
+});
+
+describe("HEAD /documents/:key", () => {
+  function headCtx(key, kvData = {}) {
+    return createCtx({
+      method: "HEAD",
+      url: `https://vault.tf/documents/${key}`,
+      params: { key },
+      env: { STORAGE: createKVMock(kvData) },
+    });
+  }
+
+  it("mirrors GET's status and headers with an empty body", async () => {
+    const ctx = headCtx("abc123", { "documents:abc123": "hello world" });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toBe("application/json; charset=UTF-8");
+    expect(res.headers.get("Cache-Control")).toContain("max-age");
+    expect(await res.text()).toBe("");
+  });
+
+  it("returns 404 with an empty body for missing documents", async () => {
+    const ctx = headCtx("missing");
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(404);
+    expect(await res.text()).toBe("");
+  });
+});
+
+describe("DELETE misconfiguration", () => {
+  it("fails closed with 500 when SECRET_KEY is unset and keeps the document", async () => {
+    const ctx = createCtx({
+      method: "DELETE",
+      url: "https://vault.tf/documents/abc123",
+      params: { key: "abc123" },
+      env: { STORAGE: createKVMock({ "documents:abc123": "data" }), SECRET_KEY: undefined },
+    });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(500);
+    expect(await ctx.env.STORAGE.get("documents:abc123")).toBe("data");
+  });
+});

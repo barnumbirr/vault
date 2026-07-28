@@ -10,11 +10,24 @@ function fetchWithTimeout(url, options) {
   return fetch(url, options).finally(function () { clearTimeout(id); });
 }
 
+// Ctrl on Windows/Linux, Cmd on macOS (ctrlKey never fires for Cmd-combos).
+function primaryModifier(evt) {
+  return evt.ctrlKey || evt.metaKey;
+}
+
 class HasteDocument {
   constructor() {
     this.locked = false;
     this.key = null;
     this.data = null;
+  }
+
+  // Number of gutter line numbers a document needs. A trailing newline is a
+  // line terminator, not a new line: "a\n" is one line, not two.
+  lineCount(data) {
+    if (data === '') return 0;
+    var lines = data.split('\n').length;
+    return data.endsWith('\n') ? lines - 1 : lines;
   }
 
   htmlEscape(s) {
@@ -56,7 +69,7 @@ class HasteDocument {
         value: high.value,
         key: key,
         language: high.language || lang,
-        lineCount: json.data === '' ? 0 : json.data.split('\n').length,
+        lineCount: this.lineCount(json.data),
       };
     } catch (err) {
       return false;
@@ -101,7 +114,7 @@ class HasteDocument {
           value: high.value,
           key: json.key,
           language: high.language,
-          lineCount: data === '' ? 0 : data.split('\n').length,
+          lineCount: this.lineCount(data),
         },
       };
     } catch (err) {
@@ -367,7 +380,7 @@ class Haste {
         el: document.querySelector('#box2 .save'),
         label: 'Save',
         shortcutDescription: 'control + s',
-        shortcut: function (evt) { return evt.ctrlKey && evt.keyCode === 83; },
+        shortcut: function (evt) { return primaryModifier(evt) && evt.keyCode === 83; },
         action: function () {
           if (self.textarea.value.trim() !== '') {
             self.lockDocument();
@@ -378,21 +391,21 @@ class Haste {
         el: document.querySelector('#box2 .new'),
         label: 'New',
         shortcutDescription: 'control + n',
-        shortcut: function (evt) { return evt.ctrlKey && evt.keyCode === 78; },
+        shortcut: function (evt) { return primaryModifier(evt) && evt.keyCode === 78; },
         action: function () { self.newDocument(!self.doc.key); },
       },
       {
         el: document.querySelector('#box2 .duplicate'),
         label: 'Duplicate & Edit',
         shortcutDescription: 'control + d',
-        shortcut: function (evt) { return self.doc.locked && evt.ctrlKey && evt.keyCode === 68; },
+        shortcut: function (evt) { return self.doc.locked && primaryModifier(evt) && evt.keyCode === 68; },
         action: function () { self.duplicateDocument(); },
       },
       {
         el: document.querySelector('#box2 .raw'),
         label: 'Just Text',
         shortcutDescription: 'control + shift + r',
-        shortcut: function (evt) { return self.doc.locked && evt.ctrlKey && evt.shiftKey && evt.keyCode === 82; },
+        shortcut: function (evt) { return self.doc.locked && primaryModifier(evt) && evt.shiftKey && evt.keyCode === 82; },
         action: function () { if (!self.doc.locked) return; window.location.href = '/raw/' + self.doc.key; },
       },
       {
@@ -400,7 +413,7 @@ class Haste {
         label: 'Twitter',
         shortcutDescription: 'control + shift + t',
         shortcut: function (evt) {
-          return self.options.twitter && self.doc.locked && evt.shiftKey && evt.ctrlKey && evt.keyCode === 84;
+          return self.options.twitter && self.doc.locked && evt.shiftKey && primaryModifier(evt) && evt.keyCode === 84;
         },
         action: function () {
           window.open(
@@ -415,7 +428,7 @@ class Haste {
         label: 'Copy URL',
         shortcutDescription: 'control + shift + c',
         shortcut: function (evt) {
-          return self.doc.locked && evt.ctrlKey && evt.shiftKey && evt.keyCode === 67;
+          return self.doc.locked && primaryModifier(evt) && evt.shiftKey && evt.keyCode === 67;
         },
         action: function () { self.copyURL(); },
       },
