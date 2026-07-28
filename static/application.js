@@ -1,5 +1,21 @@
 /* global hljs */
 
+function sanitizeHighlight(html) {
+  var tpl = document.createElement('template');
+  tpl.innerHTML = html;
+  tpl.content.querySelectorAll(':not(span)').forEach(function(el) {
+    el.replaceWith(document.createTextNode(el.textContent || ''));
+  });
+  tpl.content.querySelectorAll('span').forEach(function(span) {
+    Array.from(span.attributes).forEach(function(attr) {
+      if (attr.name !== 'class') { span.removeAttribute(attr.name); }
+    });
+  });
+  var div = document.createElement('div');
+  div.appendChild(tpl.content.cloneNode(true));
+  return div.innerHTML;
+}
+
 var FETCH_TIMEOUT = 30000;
 
 function fetchWithTimeout(url, options) {
@@ -247,7 +263,7 @@ class Haste {
     var lang = this.lookupTypeByExtension(parts[1]);
     var ret = await this.doc.load(parts[0], lang);
     if (ret) {
-      this.code.innerHTML = ret.value;
+      this.code.innerHTML = sanitizeHighlight(ret.value);
       this.setTitle(ret.key);
       this.fullKey();
       this.textarea.value = '';
@@ -329,7 +345,7 @@ class Haste {
       this.showMessage(result.error.message, 'error');
     } else if (result.result) {
       var ret = result.result;
-      this.code.innerHTML = ret.value;
+      this.code.innerHTML = sanitizeHighlight(ret.value);
       this.setTitle(ret.key);
       var file = '/' + ret.key;
       if (ret.language) {
