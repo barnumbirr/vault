@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - `Ctrl+Shift+R` on an unsaved document no longer navigates to `/raw/null`.
+- The editor textarea collapsed to two rows, making a multi-line paste appear
+  to keep only its last line (2.0.0 regression: the doctype switch to standards
+  mode broke `height: 100%`). It now sizes to the viewport.
 
 ## [2.0.1] - 2026-06-18
 

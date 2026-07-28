@@ -12,7 +12,12 @@ textarea {
   color: #fff;
   padding: 0px;
   width: 100%;
-  height: 100%;
+  /* Must be viewport-relative: no ancestor has a definite height, so a
+     percentage resolves to auto and the textarea collapses to its default
+     two rows (worked pre-2.0.0 only via quirks mode — no doctype then).
+     40px = body's top + bottom padding. dvh wins where supported. */
+  height: calc(100vh - 40px);
+  height: calc(100dvh - 40px);
   font-family: monospace;
   outline: none;
   resize: none;
