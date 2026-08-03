@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- Development requires Node 22+ (Node 20 is EOL; jsdom 30 dropped it).
+
 ## [2.1.0] - 2026-07-28
 
 ### Changed
