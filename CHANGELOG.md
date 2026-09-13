@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- Development requires Node 22+ (Node 20 is EOL; jsdom 30 dropped it).
+- Development requires Node 22.22.2+, 24.15+ or 26+ (Node 20 is EOL; jsdom 30 sets the floor).
 
 ## [2.1.0] - 2026-07-28
 
