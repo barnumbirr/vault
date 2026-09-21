@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "jsdom": "^30.0.1",
-    "marked": "^18.0.12",
-    "vitest": "^5.0.0"
+    "marked": "^18.0.13",
+    "vitest": "^5.0.1"
   }
 }
