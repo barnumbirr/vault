@@ -1,3 +1,5 @@
+
+
 # `vault`
 
 A tiny, serverless pastebin-like service built on Cloudflare Pages Functions
@@ -33,7 +35,7 @@ Set the Pages **build command** to `npm run build` and the **build output
 directory** to `static`. The build renders `README.md` into `static/about.html`,
 served at `/about`.
 
-Required environment variables:
+Environment variables (only `SECRET_KEY` is required):
 
 | Variable | Description |
 | --- | --- |
